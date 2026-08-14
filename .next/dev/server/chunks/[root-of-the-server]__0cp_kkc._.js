@@ -107,12 +107,12 @@ module.exports = mod;
 __turbopack_context__.s([
     "config",
     ()=>config,
-    "middleware",
-    ()=>middleware
+    "proxy",
+    ()=>proxy
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$middleware$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/server.js [middleware] (ecmascript)");
 ;
-function middleware(req) {
+function proxy(req) {
     if (req.nextUrl.pathname.startsWith("/admin")) {
         const authHeader = req.headers.get("authorization");
         if (authHeader) {
@@ -127,7 +127,7 @@ function middleware(req) {
                     return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$middleware$5d$__$28$ecmascript$29$__["NextResponse"].next();
                 }
             } catch (err) {
-                console.error("Middleware auth decoding error:", err);
+                console.error("proxy auth decoding error:", err);
             }
         }
         // Trigger browser auth prompt

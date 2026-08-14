@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   if (req.nextUrl.pathname.startsWith("/admin")) {
     const authHeader = req.headers.get("authorization");
 
@@ -19,7 +19,7 @@ export function middleware(req: NextRequest) {
           return NextResponse.next();
         }
       } catch (err) {
-        console.error("Middleware auth decoding error:", err);
+        console.error("proxy auth decoding error:", err);
       }
     }
 
