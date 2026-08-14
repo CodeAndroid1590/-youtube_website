@@ -8,6 +8,7 @@ generator client {
 
 model Video {
   id           String      @id
+  slug         String?     @unique
   title        String
   description  String
   publishedAt  DateTime

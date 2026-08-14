@@ -1,0 +1,3 @@
+{
+  "/video/[slug]/page": "app/video/[slug]/page.js"
+}
