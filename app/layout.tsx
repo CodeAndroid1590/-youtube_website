@@ -4,6 +4,9 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "ZeroTokensAI Video Engine",
   description: "SEO-optimized YouTube video transcripts and schema data.",
+  verification: {
+    google: "google0ff5abc0acb014fd", // <--- Add your code here
+  },
 };
 
 export default function RootLayout({
