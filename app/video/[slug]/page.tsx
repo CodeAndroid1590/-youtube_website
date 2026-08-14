@@ -1,26 +1,36 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL!,
 });
-const prisma = new PrismaClient({ adapter });
+
+// Singleton instance to prevent connection pool exhaustion during hot reloads
+const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
+const prisma = globalForPrisma.prisma || new PrismaClient({ adapter });
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
+/**
+ * Fetch video by slug (or fallback to id)
+ */
+async function getVideo(slugOrId: string) {
+  return await prisma.video.findFirst({
+    where: {
+      OR: [{ slug: slugOrId }, { id: slugOrId }],
+    },
+    include: { transcript: true },
+  });
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-
-  // Search by slug first; fallback to id if slug is missing or matches YouTube ID
-  const video = await prisma.video.findFirst({
-    where: {
-      OR: [{ slug }, { id: slug }],
-    },
-  });
+  const video = await getVideo(slug);
 
   if (!video) return { title: "Video Not Found" };
 
@@ -37,17 +47,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function VideoPage({ params }: PageProps) {
   const { slug } = await params;
-
-  // Search by slug first; fallback to id so older/direct links don't break
-  const video = await prisma.video.findFirst({
-    where: {
-      OR: [{ slug }, { id: slug }],
-    },
-    include: { transcript: true },
-  });
+  const video = await getVideo(slug);
 
   if (!video) {
     notFound();
+  }
+
+  // FORCE REDIRECT: If accessed via ID (e.g. /video/dQw4w9WgXcQ), update URL bar to /video/your-slug-title
+  if (video.slug && slug !== video.slug) {
+    redirect(`/video/${video.slug}`);
   }
 
   // Google VideoObject JSON-LD Schema
@@ -57,7 +65,7 @@ export default async function VideoPage({ params }: PageProps) {
     "name": video.title,
     "description": video.description,
     "thumbnailUrl": [video.thumbnailUrl],
-    "uploadDate": video.publishedAt ? video.publishedAt.toISOString() : new Date().toISOString(),
+    "uploadDate": video.publishedAt ? new Date(video.publishedAt).toISOString() : new Date().toISOString(),
     "embedUrl": `https://www.youtube.com/embed/${video.id}`,
     "contentUrl": `https://www.youtube.com/watch?v=${video.id}`,
   };

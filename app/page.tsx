@@ -88,7 +88,7 @@ export default async function HomePage() {
             {videos.map((video: VideoWithTranscript) => (
               <Link
                 key={video.id}
-                href={`/video/${video.id}`}
+                href={`/video/${video.slug || video.id}`}
                 className="group bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
               >
                 {/* Thumbnail Container */}

@@ -31,24 +31,34 @@ var __turbopack_async_dependencies__ = __turbopack_handle_async_dependencies__([
 const adapter = new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$prisma$2f$adapter$2d$pg$2f$dist$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["PrismaPg"]({
     connectionString: process.env.DATABASE_URL
 });
-const prisma = new __TURBOPACK__imported__module__$5b$externals$5d2f40$prisma$2f$client__$5b$external$5d$__$2840$prisma$2f$client$2c$__cjs$2c$__$5b$project$5d2f$node_modules$2f40$prisma$2f$client$29$__["PrismaClient"]({
+// Singleton instance to prevent connection pool exhaustion during hot reloads
+const globalForPrisma = globalThis;
+const prisma = globalForPrisma.prisma || new __TURBOPACK__imported__module__$5b$externals$5d2f40$prisma$2f$client__$5b$external$5d$__$2840$prisma$2f$client$2c$__cjs$2c$__$5b$project$5d2f$node_modules$2f40$prisma$2f$client$29$__["PrismaClient"]({
     adapter
 });
-async function generateMetadata({ params }) {
-    const { slug } = await params;
-    // Search by slug first; fallback to id if slug is missing or matches YouTube ID
-    const video = await prisma.video.findFirst({
+if ("TURBOPACK compile-time truthy", 1) globalForPrisma.prisma = prisma;
+/**
+ * Fetch video by slug (or fallback to id)
+ */ async function getVideo(slugOrId) {
+    return await prisma.video.findFirst({
         where: {
             OR: [
                 {
-                    slug
+                    slug: slugOrId
                 },
                 {
-                    id: slug
+                    id: slugOrId
                 }
             ]
+        },
+        include: {
+            transcript: true
         }
     });
+}
+async function generateMetadata({ params }) {
+    const { slug } = await params;
+    const video = await getVideo(slug);
     if (!video) return {
         title: "Video Not Found"
     };
@@ -66,24 +76,13 @@ async function generateMetadata({ params }) {
 }
 async function VideoPage({ params }) {
     const { slug } = await params;
-    // Search by slug first; fallback to id so older/direct links don't break
-    const video = await prisma.video.findFirst({
-        where: {
-            OR: [
-                {
-                    slug
-                },
-                {
-                    id: slug
-                }
-            ]
-        },
-        include: {
-            transcript: true
-        }
-    });
+    const video = await getVideo(slug);
     if (!video) {
         (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$components$2f$navigation$2e$react$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["notFound"])();
+    }
+    // FORCE REDIRECT: If accessed via ID (e.g. /video/dQw4w9WgXcQ), update URL bar to /video/your-slug-title
+    if (video.slug && slug !== video.slug) {
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$components$2f$navigation$2e$react$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["redirect"])(`/video/${video.slug}`);
     }
     // Google VideoObject JSON-LD Schema
     const jsonLd = {
@@ -94,7 +93,7 @@ async function VideoPage({ params }) {
         "thumbnailUrl": [
             video.thumbnailUrl
         ],
-        "uploadDate": video.publishedAt ? video.publishedAt.toISOString() : new Date().toISOString(),
+        "uploadDate": video.publishedAt ? new Date(video.publishedAt).toISOString() : new Date().toISOString(),
         "embedUrl": `https://www.youtube.com/embed/${video.id}`,
         "contentUrl": `https://www.youtube.com/watch?v=${video.id}`
     };
@@ -108,7 +107,7 @@ async function VideoPage({ params }) {
                 }
             }, void 0, false, {
                 fileName: "[project]/app/video/[slug]/page.tsx",
-                lineNumber: 68,
+                lineNumber: 76,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
@@ -116,7 +115,7 @@ async function VideoPage({ params }) {
                 children: video.title
             }, void 0, false, {
                 fileName: "[project]/app/video/[slug]/page.tsx",
-                lineNumber: 73,
+                lineNumber: 81,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -128,12 +127,12 @@ async function VideoPage({ params }) {
                     allowFullScreen: true
                 }, void 0, false, {
                     fileName: "[project]/app/video/[slug]/page.tsx",
-                    lineNumber: 77,
+                    lineNumber: 85,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/app/video/[slug]/page.tsx",
-                lineNumber: 76,
+                lineNumber: 84,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
@@ -144,7 +143,7 @@ async function VideoPage({ params }) {
                         children: "About This Video"
                     }, void 0, false, {
                         fileName: "[project]/app/video/[slug]/page.tsx",
-                        lineNumber: 87,
+                        lineNumber: 95,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -152,13 +151,13 @@ async function VideoPage({ params }) {
                         children: video.description
                     }, void 0, false, {
                         fileName: "[project]/app/video/[slug]/page.tsx",
-                        lineNumber: 88,
+                        lineNumber: 96,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/video/[slug]/page.tsx",
-                lineNumber: 86,
+                lineNumber: 94,
                 columnNumber: 7
             }, this),
             video.transcript && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
@@ -169,7 +168,7 @@ async function VideoPage({ params }) {
                         children: "Video Transcript"
                     }, void 0, false, {
                         fileName: "[project]/app/video/[slug]/page.tsx",
-                        lineNumber: 96,
+                        lineNumber: 104,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -177,19 +176,19 @@ async function VideoPage({ params }) {
                         children: video.transcript.fullText || "No transcript text available."
                     }, void 0, false, {
                         fileName: "[project]/app/video/[slug]/page.tsx",
-                        lineNumber: 97,
+                        lineNumber: 105,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/video/[slug]/page.tsx",
-                lineNumber: 95,
+                lineNumber: 103,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/video/[slug]/page.tsx",
-        lineNumber: 66,
+        lineNumber: 74,
         columnNumber: 5
     }, this);
 }

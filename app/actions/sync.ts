@@ -1,101 +1,137 @@
 "use server";
 
-import { headers } from "next/headers";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { YoutubeTranscript } from "youtube-transcript";
-import { revalidatePath } from "next/cache";
+import { Pool } from "pg";
+import { google } from "googleapis";
+import { fetchTranscript, toPlainText } from "youtube-transcript-plus";
+import { slugify } from "@/lib/slugify"; // Make sure lib/slugify.ts exists
 
-const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL!,
-});
+// Initialize DB connection & Prisma
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  throw new Error("DATABASE_URL is not set in environment variables.");
+}
+
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
+const youtube = google.youtube({
+  version: "v3",
+  auth: process.env.YOUTUBE_API_KEY,
+});
+
+/**
+ * Helper function to extract YouTube Video ID from full URLs or raw IDs
+ */
 function extractVideoId(input: string): string {
   const trimmed = input.trim();
-  const match = trimmed.match(
-    /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/
-  );
-  return match ? match[1] : trimmed;
+  
+  // Standard watch URL: https://www.youtube.com/watch?v=VIDEO_ID
+  const watchMatch = trimmed.match(/[?&]v=([^&]+)/);
+  if (watchMatch) return watchMatch[1];
+
+  // Short URL: https://youtu.be/VIDEO_ID
+  const shortMatch = trimmed.match(/youtu\.be\/([^?]+)/);
+  if (shortMatch) return shortMatch[1];
+
+  // Embed URL: https://www.youtube.com/embed/VIDEO_ID
+  const embedMatch = trimmed.match(/embed\/([^?]+)/);
+  if (embedMatch) return embedMatch[1];
+
+  // Assume raw Video ID
+  return trimmed;
 }
 
 export async function syncVideoAction(formData: FormData) {
-  // 1. Verify Basic Auth Header on Action invocation
-  const reqHeaders = await headers();
-  const authHeader = reqHeaders.get("authorization");
-
-  if (authHeader) {
-    const authValue = authHeader.split(" ")[1] || "";
-    const [username, password] = Buffer.from(authValue, "base64")
-      .toString("utf-8")
-      .split(":");
-
-    const validUser = process.env.ADMIN_USERNAME || "admin";
-    const validPass = process.env.ADMIN_PASSWORD || "admin123";
-
-    if (username !== validUser || password !== validPass) {
-      return { success: false, error: "Unauthorized action." };
-    }
-  }
-
-  // 2. Normal Action Logic
-  const rawInput = formData.get("videoId") as string;
-  if (!rawInput) {
-    return { success: false, error: "Please enter a Video ID or URL." };
-  }
-
-  const videoId = extractVideoId(rawInput);
-
-  if (videoId.length !== 11) {
-    return { success: false, error: "Invalid YouTube Video ID format." };
-  }
-
   try {
-    const oembedRes = await fetch(
-      `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`
-    );
-
-    if (!oembedRes.ok) {
-      return { success: false, error: "Failed to fetch video details from YouTube." };
+    const rawInput = formData.get("videoId") as string;
+    if (!rawInput) {
+      return { success: false, error: "Please provide a valid YouTube Video ID or URL." };
     }
 
-    const oembedData = await oembedRes.json();
-    const title = oembedData.title || `YouTube Video (${videoId})`;
-    const thumbnailUrl = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
-    const description = `Video tutorial for ${title}`;
-    const publishedAt = new Date();
+    const videoId = extractVideoId(rawInput);
+    console.log(`⏳ Admin Engine processing video: ${videoId}...`);
 
-    let fullText = "";
-    try {
-      const transcriptItems = await YoutubeTranscript.fetchTranscript(videoId);
-      fullText = transcriptItems.map((item) => item.text).join(" ");
-    } catch {
-      console.warn(`No transcript found for video ${videoId}`);
-    }
-
-    const video = await prisma.video.upsert({
-      where: { id: videoId },
-      update: { title, thumbnailUrl, description, publishedAt },
-      create: { id: videoId, title, thumbnailUrl, description, publishedAt },
+    // 1. Fetch metadata from YouTube API
+    const response = await youtube.videos.list({
+      part: ["snippet"],
+      id: [videoId],
     });
 
-    if (fullText) {
-      await prisma.transcript.upsert({
-        where: { videoId },
-        update: { fullText },
-        create: { videoId, fullText },
-      });
+    const videoData = response.data.items?.[0]?.snippet;
+    if (!videoData) {
+      return { success: false, error: `Video ID "${videoId}" not found on YouTube.` };
     }
 
-    revalidatePath("/");
+    // 2. Generate SEO slug from title with fallback
+    const videoTitle = videoData.title || "";
+    let generatedSlug = slugify(videoTitle);
+
+    if (!generatedSlug || generatedSlug.trim() === "") {
+      generatedSlug = `video-${videoId}`;
+    }
+
+    // 3. Extract transcript (if available)
+    let fullTextTranscript = "";
+    try {
+      const rawSegments = await fetchTranscript(videoId, { lang: "en" });
+      fullTextTranscript = toPlainText(rawSegments);
+      console.log("✅ Transcript successfully pulled.");
+    } catch (error) {
+      console.warn("⚠️ No captions found on YouTube, saving without transcript.");
+    }
+
+    // 4. Save/Update record in PostgreSQL
+    const savedRecord = await prisma.video.upsert({
+      where: { id: videoId },
+      update: {
+        title: videoTitle,
+        slug: generatedSlug, // Insert/update slug in database
+        description: videoData.description || "",
+        publishedAt: new Date(videoData.publishedAt || Date.now()),
+        thumbnailUrl:
+          videoData.thumbnails?.maxres?.url ||
+          videoData.thumbnails?.high?.url ||
+          "",
+        ...(fullTextTranscript && {
+          transcript: {
+            upsert: {
+              create: { fullText: fullTextTranscript },
+              update: { fullText: fullTextTranscript },
+            },
+          },
+        }),
+      },
+      create: {
+        id: videoId,
+        title: videoTitle,
+        slug: generatedSlug, // Insert slug in database
+        description: videoData.description || "",
+        publishedAt: new Date(videoData.publishedAt || Date.now()),
+        thumbnailUrl:
+          videoData.thumbnails?.maxres?.url ||
+          videoData.thumbnails?.high?.url ||
+          "",
+        transcript: fullTextTranscript
+          ? { create: { fullText: fullTextTranscript } }
+          : undefined,
+      },
+    });
+
+    console.log(`🎉 Ingested "${savedRecord.title}" | Slug: "${savedRecord.slug}"`);
 
     return {
       success: true,
-      message: `Successfully synced: "${video.title}"`,
-      videoId: video.id,
+      message: `Successfully synced "${savedRecord.title}"!`,
+      videoId: savedRecord.slug || savedRecord.id, // Direct user to slug URL
     };
-  } catch (err: unknown) {
-    const error = err as Error;
-    return { success: false, error: error.message || "An error occurred." };
+  } catch (err: any) {
+    console.error("❌ Action Error:", err);
+    return {
+      success: false,
+      error: err.message || "An unexpected error occurred while syncing.",
+    };
   }
 }
