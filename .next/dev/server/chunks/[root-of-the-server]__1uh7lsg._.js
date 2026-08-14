@@ -129,7 +129,6 @@ var __turbopack_async_dependencies__ = __turbopack_handle_async_dependencies__([
 [__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$prisma$2f$adapter$2d$pg$2f$dist$2f$index$2e$mjs__$5b$app$2d$route$5d$__$28$ecmascript$29$__] = __turbopack_async_dependencies__.then ? (await __turbopack_async_dependencies__)() : __turbopack_async_dependencies__;
 ;
 ;
-;
 const adapter = new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$prisma$2f$adapter$2d$pg$2f$dist$2f$index$2e$mjs__$5b$app$2d$route$5d$__$28$ecmascript$29$__["PrismaPg"]({
     connectionString: process.env.DATABASE_URL
 });
@@ -137,7 +136,7 @@ const prisma = new __TURBOPACK__imported__module__$5b$externals$5d2f40$prisma$2f
     adapter
 });
 async function sitemap() {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const baseUrl = ("TURBOPACK compile-time value", "http://localhost:3000") || "http://localhost:3000";
     // 1. Fetch all synced videos using existing model fields
     const videos = await prisma.video.findMany({
         select: {
