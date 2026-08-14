@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import Link from "next/link";
 
@@ -9,8 +9,13 @@ const prisma = new PrismaClient({ adapter });
 
 export const revalidate = 0; // Fetch fresh data on every request
 
+// Infer the Video type including the optional relational transcript
+type VideoWithTranscript = Prisma.VideoGetPayload<{
+  include: { transcript: true };
+}>;
+
 export default async function HomePage() {
-  const videos = await prisma.video.findMany({
+  const videos: VideoWithTranscript[] = await prisma.video.findMany({
     orderBy: {
       publishedAt: "desc",
     },
@@ -80,7 +85,7 @@ export default async function HomePage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {videos.map((video) => (
+            {videos.map((video: VideoWithTranscript) => (
               <Link
                 key={video.id}
                 href={`/video/${video.id}`}

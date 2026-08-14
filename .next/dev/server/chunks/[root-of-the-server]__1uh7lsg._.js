@@ -136,7 +136,8 @@ const prisma = new __TURBOPACK__imported__module__$5b$externals$5d2f40$prisma$2f
     adapter
 });
 async function sitemap() {
-    const baseUrl = ("TURBOPACK compile-time value", "http://localhost:3000") || "http://localhost:3000";
+    // Fallback base URL ensures valid URLs during local development or build time
+    const baseUrl = (("TURBOPACK compile-time value", "http://localhost:3000") || "https://zerotokensai.com").replace(/\/$/, "");
     // 1. Fetch all synced videos using existing model fields
     const videos = await prisma.video.findMany({
         select: {

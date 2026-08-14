@@ -1,5 +1,5 @@
 import { MetadataRoute } from "next";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 const adapter = new PrismaPg({
@@ -7,11 +7,23 @@ const adapter = new PrismaPg({
 });
 const prisma = new PrismaClient({ adapter });
 
+// Define specific payload selection type for explicit mapping inference
+type SitemapVideoPayload = Prisma.VideoGetPayload<{
+  select: {
+    id: true;
+    publishedAt: true;
+    createdAt: true;
+  };
+}>;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  // Fallback base URL ensures valid URLs during local development or build time
+  const baseUrl = (
+    process.env.NEXT_PUBLIC_SITE_URL || "https://zerotokensai.com"
+  ).replace(/\/$/, "");
 
   // 1. Fetch all synced videos using existing model fields
-  const videos = await prisma.video.findMany({
+  const videos: SitemapVideoPayload[] = await prisma.video.findMany({
     select: {
       id: true,
       publishedAt: true,
@@ -20,12 +32,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   });
 
   // 2. Generate dynamic sitemap entries
-  const videoUrls: MetadataRoute.Sitemap = videos.map((video) => ({
-    url: `${baseUrl}/video/${video.id}`,
-    lastModified: video.createdAt || video.publishedAt || new Date(),
-    changeFrequency: "monthly",
-    priority: 0.8,
-  }));
+  const videoUrls: MetadataRoute.Sitemap = videos.map(
+    (video: SitemapVideoPayload) => ({
+      url: `${baseUrl}/video/${video.id}`,
+      lastModified: video.createdAt || video.publishedAt || new Date(),
+      changeFrequency: "monthly",
+      priority: 0.8,
+    })
+  );
 
   // 3. Static routes
   const staticUrls: MetadataRoute.Sitemap = [
