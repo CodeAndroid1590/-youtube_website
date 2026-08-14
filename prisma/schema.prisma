@@ -1,0 +1,25 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Video {
+  id           String      @id
+  title        String
+  description  String
+  publishedAt  DateTime
+  thumbnailUrl String
+  transcript   Transcript?
+  createdAt    DateTime    @default(now())
+}
+
+model Transcript {
+  id        String   @id @default(cuid())
+  videoId   String   @unique
+  video     Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  fullText  String   @db.Text
+  createdAt DateTime @default(now())
+}
