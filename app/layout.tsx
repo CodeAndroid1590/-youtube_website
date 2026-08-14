@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "ZeroTokensAI Video Engine",
   description: "SEO-optimized YouTube video transcripts and schema data.",
   verification: {
-    google: "google0ff5abc0acb014fd", // <--- Add your code here
+    google: "yiXvZTO-eqQybrtqtdEeus900sJZ4TPjX-OWmzY4jws", //<meta name="google-site-verification" content="yiXvZTO-eqQybrtqtdEeus900sJZ4TPjX-OWmzY4jws" />
   },
 };
 
