@@ -19,7 +19,7 @@ type SitemapVideoPayload = Prisma.VideoGetPayload<{
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Fallback base URL ensures valid URLs during local development or build time
   const baseUrl = (
-    process.env.NEXT_PUBLIC_SITE_URL || "https://zerotokensai.com"
+    process.env.NEXT_PUBLIC_SITE_URL || "https://youtube-website-zy1c.vercel.app"
   ).replace(/\/$/, "");
 
   // 1. Fetch all synced videos using existing model fields
