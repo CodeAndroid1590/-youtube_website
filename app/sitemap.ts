@@ -10,7 +10,7 @@ const prisma = new PrismaClient({ adapter });
 // Define specific payload selection type for explicit mapping inference
 type SitemapVideoPayload = Prisma.VideoGetPayload<{
   select: {
-    id: true;
+    slug: true;
     publishedAt: true;
     createdAt: true;
   };
@@ -25,7 +25,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // 1. Fetch all synced videos using existing model fields
   const videos: SitemapVideoPayload[] = await prisma.video.findMany({
     select: {
-      id: true,
+      slug: true,
       publishedAt: true,
       createdAt: true,
     },
@@ -34,7 +34,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // 2. Generate dynamic sitemap entries
   const videoUrls: MetadataRoute.Sitemap = videos.map(
     (video: SitemapVideoPayload) => ({
-      url: `${baseUrl}/video/${video.id}`,
+      url: `${baseUrl}/video/${video.slug}`,
       lastModified: video.createdAt || video.publishedAt || new Date(),
       changeFrequency: "monthly",
       priority: 0.8,
