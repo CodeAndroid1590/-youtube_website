@@ -1,17 +1,5 @@
 {
-  "node": {
-    "40aa3fc55c87f74b74d81d0cb74169a2bdaa2c8855": {
-      "workers": {
-        "app/admin/page": {
-          "moduleId": "[project]/.next-internal/server/app/admin/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/actions/sync.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": true,
-          "codeHash": null
-        }
-      },
-      "filename": "app/actions/sync.ts",
-      "exportedName": "syncVideoAction"
-    }
-  },
+  "node": {},
   "edge": {},
   "encryptionKey": "Yqsdn45vP1cRW6YCKEjaIIs1vPw0f+tLudpCr+at4hY="
 }
