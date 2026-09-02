@@ -1,6 +1,7 @@
 import { MetadataRoute } from "next";
 import { PrismaClient, Prisma } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { TOPICS } from "@/lib/topics";
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL!,
@@ -19,7 +20,7 @@ type SitemapVideoPayload = Prisma.VideoGetPayload<{
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Fallback base URL ensures valid URLs during local development or build time
   const baseUrl = (
-    process.env.NEXT_PUBLIC_SITE_URL || "https://youtube-website-zy1c.vercel.app"
+    process.env.NEXT_PUBLIC_SITE_URL || "https://devnesthub.com"
   ).replace(/\/$/, "");
 
   // 1. Fetch all synced videos using existing model fields
@@ -41,7 +42,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })
   );
 
-  // 3. Static routes
+  // 3. Topic hub pages — these carry internal links to related videos,
+  // so they're worth listing explicitly.
+  const topicUrls: MetadataRoute.Sitemap = TOPICS.map((topic) => ({
+    url: `${baseUrl}/topic/${topic.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly",
+    priority: 0.6,
+  }));
+
+  // 4. Static routes. Note: /admin is intentionally excluded — it's an
+  // internal ingestion tool, already disallowed in robots.ts, and has no
+  // reason to be crawled or indexed.
   const staticUrls: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
@@ -49,13 +61,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "daily",
       priority: 1.0,
     },
-    {
-      url: `${baseUrl}/admin`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.3,
-    },
   ];
 
-  return [...staticUrls, ...videoUrls];
+  return [...staticUrls, ...topicUrls, ...videoUrls];
 }
