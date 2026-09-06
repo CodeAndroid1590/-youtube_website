@@ -4,7 +4,7 @@ import { TOPICS } from "@/lib/topics";
 // Set NEXT_PUBLIC_YOUTUBE_CHANNEL_URL in your deployment env to point this
 // at the exact channel you want this site sending traffic to.
 const YOUTUBE_CHANNEL_URL =
-  process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_URL || "https://www.youtube.com/@setupwalapro";
+  process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_URL || "https://www.youtube.com/@AIWiredOfficial159";
 
 export default function SiteHeader({ videoCount }: { videoCount?: number }) {
   return (
@@ -12,10 +12,10 @@ export default function SiteHeader({ videoCount }: { videoCount?: number }) {
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between gap-4">
         <Link href="/" className="flex items-center gap-3 shrink-0">
           <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-md shadow-blue-500/20">
-            ZT
+            AI
           </div>
           <span className="font-bold text-lg tracking-tight text-slate-900">
-            ZeroTokens<span className="text-blue-600">AI</span>
+            AIWired<span className="text-blue-600">Official</span>
           </span>
         </Link>
 

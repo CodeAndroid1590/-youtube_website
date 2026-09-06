@@ -1,16 +1,11 @@
-import { PrismaClient, Prisma } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
+import { Prisma } from "@prisma/client";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import SiteHeader from "../../components/SiteHeader";
 import VideoCard from "../../components/VideoCard";
 import { getTopicBySlug, deriveTopics, TOPICS } from "@/lib/topics";
-
-const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL!,
-});
-const prisma = new PrismaClient({ adapter });
+import { prisma } from "@/lib/prisma";
 
 export const revalidate = 0;
 

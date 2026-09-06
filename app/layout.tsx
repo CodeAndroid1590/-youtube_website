@@ -6,8 +6,8 @@ const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://devnesthub.com").
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Claude Code, AI Coding & Free AI Tool Tutorials | ZeroTokensAI",
-    template: "%s | ZeroTokensAI",
+    default: "Claude Code, AI Coding & Free AI Tool Tutorials | AIWiredOfficial",
+    template: "%s | AIWiredOfficial",
   },
   description:
     "Step-by-step tutorials on Claude Code, free AI coding tools, local AI models, and web development — with full video transcripts you can search and read.",
@@ -27,7 +27,7 @@ export default function RootLayout({
   const websiteJsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "ZeroTokensAI",
+    name: "AIWiredOfficial",
     url: SITE_URL,
     description:
       "Step-by-step tutorials on Claude Code, free AI coding tools, local AI models, and web development, with full video transcripts.",

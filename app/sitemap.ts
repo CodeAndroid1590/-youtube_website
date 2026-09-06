@@ -1,12 +1,7 @@
 import { MetadataRoute } from "next";
-import { PrismaClient, Prisma } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
+import { Prisma } from "@prisma/client";
 import { TOPICS } from "@/lib/topics";
-
-const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL!,
-});
-const prisma = new PrismaClient({ adapter });
+import { prisma } from "@/lib/prisma";
 
 // Define specific payload selection type for explicit mapping inference
 type SitemapVideoPayload = Prisma.VideoGetPayload<{

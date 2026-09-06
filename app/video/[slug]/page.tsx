@@ -1,5 +1,3 @@
-import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
 import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -7,19 +5,11 @@ import SiteHeader from "../../components/SiteHeader";
 import VideoCard from "../../components/VideoCard";
 import { cleanDescription, extractHashtags } from "@/lib/content";
 import { deriveTopics } from "@/lib/topics";
-
-const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL!,
-});
-
-// Singleton instance to prevent connection pool exhaustion during hot reloads
-const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
-const prisma = globalForPrisma.prisma || new PrismaClient({ adapter });
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+import { prisma } from "@/lib/prisma";
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://devnesthub.com").replace(/\/$/, "");
 const YOUTUBE_CHANNEL_URL =
-  process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_URL || "https://www.youtube.com/@setupwalapro";
+  process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_URL || "https://www.youtube.com/@AIWiredOfficial159";
 
 interface PageProps {
   params: Promise<{ slug: string }>;

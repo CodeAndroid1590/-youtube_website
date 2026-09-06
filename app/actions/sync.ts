@@ -1,21 +1,11 @@
 "use server";
 
-import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
-import { Pool } from "pg";
 import { google } from "googleapis";
 import { fetchTranscript, toPlainText } from "youtube-transcript-plus";
-import { slugify } from "@/lib/slugify"; // Make sure lib/slugify.ts exists
-
-// Initialize DB connection & Prisma
-const connectionString = process.env.DATABASE_URL;
-if (!connectionString) {
-  throw new Error("DATABASE_URL is not set in environment variables.");
-}
-
-const pool = new Pool({ connectionString });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
+import { revalidatePath } from "next/cache";
+import { slugify } from "@/lib/slugify";
+import { prisma } from "@/lib/prisma";
+import { isAuthenticated } from "@/lib/auth";
 
 const youtube = google.youtube({
   version: "v3",
@@ -27,7 +17,7 @@ const youtube = google.youtube({
  */
 function extractVideoId(input: string): string {
   const trimmed = input.trim();
-  
+
   // Standard watch URL: https://www.youtube.com/watch?v=VIDEO_ID
   const watchMatch = trimmed.match(/[?&]v=([^&]+)/);
   if (watchMatch) return watchMatch[1];
@@ -45,6 +35,10 @@ function extractVideoId(input: string): string {
 }
 
 export async function syncVideoAction(formData: FormData) {
+  if (!(await isAuthenticated())) {
+    return { success: false, error: "Please log in to continue." };
+  }
+
   try {
     const rawInput = formData.get("videoId") as string;
     if (!rawInput) {
@@ -121,6 +115,10 @@ export async function syncVideoAction(formData: FormData) {
     });
 
     console.log(`🎉 Ingested "${savedRecord.title}" | Slug: "${savedRecord.slug}"`);
+
+    revalidatePath("/admin");
+    revalidatePath("/");
+    revalidatePath(`/video/${savedRecord.slug}`);
 
     return {
       success: true,
