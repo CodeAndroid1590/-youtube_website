@@ -6,8 +6,9 @@ import VideoCard from "../../components/VideoCard";
 import { cleanDescription, extractHashtags } from "@/lib/content";
 import { deriveTopics } from "@/lib/topics";
 import { prisma } from "@/lib/prisma";
+import { getSiteUrl } from "@/lib/site";
 
-const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://devnesthub.com").replace(/\/$/, "");
+const SITE_URL = getSiteUrl();
 const YOUTUBE_CHANNEL_URL =
   process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_URL || "https://www.youtube.com/@AIWiredOfficial159";
 

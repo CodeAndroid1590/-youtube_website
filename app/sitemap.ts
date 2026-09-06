@@ -2,6 +2,7 @@ import { MetadataRoute } from "next";
 import { Prisma } from "@prisma/client";
 import { TOPICS } from "@/lib/topics";
 import { prisma } from "@/lib/prisma";
+import { getSiteUrl } from "@/lib/site";
 
 // Define specific payload selection type for explicit mapping inference
 type SitemapVideoPayload = Prisma.VideoGetPayload<{
@@ -13,10 +14,10 @@ type SitemapVideoPayload = Prisma.VideoGetPayload<{
 }>;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // Fallback base URL ensures valid URLs during local development or build time
-  const baseUrl = (
-    process.env.NEXT_PUBLIC_SITE_URL || "https://devnesthub.com"
-  ).replace(/\/$/, "");
+  // Validated so a misconfigured env var can't silently point every URL in
+  // this sitemap at a broken domain (this happened before via a stray
+  // internal Vercel value — Google simply can't index pages that way).
+  const baseUrl = getSiteUrl();
 
   // 1. Fetch all synced videos using existing model fields
   const videos: SitemapVideoPayload[] = await prisma.video.findMany({
