@@ -4,6 +4,17 @@ import { TOPICS } from "@/lib/topics";
 import { prisma } from "@/lib/prisma";
 import { getSiteUrl } from "@/lib/site";
 
+// Without this, Next.js treats sitemap.ts as a static route with no
+// dynamic function calls and generates it once at build time, then serves
+// that same cached output on every request until the next deploy. That's
+// exactly what happened here: the sitemap froze with whatever videos were
+// in the database on the last deploy (Sep 6) while new videos kept being
+// added afterwards via admin syncs and the standalone sync script, neither
+// of which triggers a rebuild. Forcing dynamic rendering makes sitemap.xml
+// query the database fresh on every request, same as the homepage and
+// topic pages already do.
+export const revalidate = 0;
+
 // Define specific payload selection type for explicit mapping inference
 type SitemapVideoPayload = Prisma.VideoGetPayload<{
   select: {
@@ -28,8 +39,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   });
 
-  // 2. Generate dynamic sitemap entries
-  const videoUrls: MetadataRoute.Sitemap = videos.map(
+  // 2. Generate dynamic sitemap entries.
+  // Defensive dedupe: slug is meant to be unique, but if the database ever
+  // drifts (e.g. two videos briefly resolving to the same slug before a
+  // collision is caught at sync time — see lib/slugify.ts), this guarantees
+  // the sitemap never emits the same <loc> twice. When duplicates do exist,
+  // keep the one with the most recent createdAt.
+  const seenSlugs = new Map<string, SitemapVideoPayload>();
+  for (const video of videos) {
+    if (!video.slug) continue;
+    const existing = seenSlugs.get(video.slug);
+    if (!existing || (video.createdAt ?? new Date(0)) > (existing.createdAt ?? new Date(0))) {
+      seenSlugs.set(video.slug, video);
+    }
+  }
+
+  const videoUrls: MetadataRoute.Sitemap = Array.from(seenSlugs.values()).map(
     (video: SitemapVideoPayload) => ({
       url: `${baseUrl}/video/${video.slug}`,
       lastModified: video.createdAt || video.publishedAt || new Date(),

@@ -3,7 +3,7 @@
 import { google } from "googleapis";
 import { fetchTranscript, toPlainText } from "youtube-transcript-plus";
 import { revalidatePath } from "next/cache";
-import { slugify } from "@/lib/slugify";
+import { slugify, ensureUniqueSlug } from "@/lib/slugify";
 import { prisma } from "@/lib/prisma";
 import { isAuthenticated } from "@/lib/auth";
 
@@ -67,6 +67,9 @@ export async function syncVideoAction(formData: FormData) {
       generatedSlug = `video-${videoId}`;
     }
 
+    // Guard against two different videos landing on the same slug.
+    generatedSlug = await ensureUniqueSlug(prisma, generatedSlug, videoId);
+
     // 3. Extract transcript (if available)
     let fullTextTranscript = "";
     try {
@@ -119,6 +122,7 @@ export async function syncVideoAction(formData: FormData) {
     revalidatePath("/admin");
     revalidatePath("/");
     revalidatePath(`/video/${savedRecord.slug}`);
+    revalidatePath("/sitemap.xml");
 
     return {
       success: true,

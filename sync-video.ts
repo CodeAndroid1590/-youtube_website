@@ -4,7 +4,7 @@ import { Pool } from "pg";
 import { google } from "googleapis";
 import { fetchTranscript, toPlainText } from "youtube-transcript-plus";
 import dotenv from "dotenv";
-import { slugify } from "./lib/slugify"; // Use "@/lib/slugify" or "../lib/slugify" depending on your folder location
+import { slugify, ensureUniqueSlug } from "./lib/slugify"; // Use "@/lib/slugify" or "../lib/slugify" depending on your folder location
 
 // Load environment variables from .env
 dotenv.config();
@@ -50,6 +50,9 @@ export async function syncSingleVideo(videoId: string) {
   if (!generatedSlug || generatedSlug.trim() === "") {
     generatedSlug = `video-${videoId}`;
   }
+
+  // Guard against two different videos landing on the same slug.
+  generatedSlug = await ensureUniqueSlug(prisma, generatedSlug, videoId);
 
   console.log(`📌 Title: "${videoTitle}"`);
   console.log(`📌 Generated Slug: "${generatedSlug}"`);
