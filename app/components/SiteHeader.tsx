@@ -6,7 +6,7 @@ import { TOPICS } from "@/lib/topics";
 const YOUTUBE_CHANNEL_URL =
   process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_URL || "https://www.youtube.com/@AIWiredOfficial159";
 
-export default function SiteHeader({ videoCount }: { videoCount?: number }) {
+export default function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-slate-200/80">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between gap-4">
@@ -23,6 +23,9 @@ export default function SiteHeader({ videoCount }: { videoCount?: number }) {
           aria-label="Topics"
           className="hidden md:flex items-center gap-5 text-sm font-medium text-slate-600 overflow-x-auto"
         >
+          <Link href="/blog" className="hover:text-blue-600 transition-colors whitespace-nowrap">
+            All tutorials
+          </Link>
           {TOPICS.map((topic) => (
             <Link
               key={topic.slug}
@@ -35,12 +38,6 @@ export default function SiteHeader({ videoCount }: { videoCount?: number }) {
         </nav>
 
         <div className="flex items-center gap-3 shrink-0">
-          {typeof videoCount === "number" && (
-            <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              {videoCount} {videoCount === 1 ? "Video Synced" : "Videos Synced"}
-            </span>
-          )}
           <a
             href={YOUTUBE_CHANNEL_URL}
             target="_blank"

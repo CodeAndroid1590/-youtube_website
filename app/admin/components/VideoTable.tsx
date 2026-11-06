@@ -90,7 +90,7 @@ export default function VideoTable({ videos }: { videos: AdminVideoRow[] }) {
 
               <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
                 <Link
-                  href={`/video/${video.slug || video.id}`}
+                  href={`https://www.youtube.com/watch?v=${video.id}`}
                   target="_blank"
                   className="text-xs text-slate-400 hover:text-white px-2.5 py-1.5 transition-colors"
                 >
