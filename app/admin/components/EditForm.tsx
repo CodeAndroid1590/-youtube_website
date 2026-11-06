@@ -49,7 +49,7 @@ export default function EditForm({ video }: { video: EditableVideo }) {
 
       <div>
         <label className="block text-xs font-medium text-slate-300 mb-1.5">
-          URL Slug <span className="text-slate-500">(used in legacy — not shown publicly)</span>
+          URL Slug <span className="text-slate-500">(used in /video/&lt;slug&gt;)</span>
         </label>
         <input
           type="text"

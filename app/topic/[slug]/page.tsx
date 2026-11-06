@@ -1,12 +1,17 @@
+import { Prisma } from "@prisma/client";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import SiteHeader from "../../components/SiteHeader";
-import PostCard from "../../components/PostCard";
-import { getTopicBySlug, TOPICS } from "@/lib/topics";
-import { getPublishedPosts, postImage } from "@/lib/posts";
+import VideoCard from "../../components/VideoCard";
+import { getTopicBySlug, deriveTopics, TOPICS } from "@/lib/topics";
+import { prisma } from "@/lib/prisma";
 
 export const revalidate = 0;
+
+type VideoWithTranscript = Prisma.VideoGetPayload<{
+  include: { transcript: true };
+}>;
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -21,16 +26,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const topic = getTopicBySlug(slug);
   if (!topic) return { title: "Topic Not Found" };
 
-  const posts = await getPublishedPosts({ topic: topic.slug });
-
   return {
     title: `${topic.label} Tutorials`,
     description: topic.description,
     alternates: {
       canonical: `/topic/${topic.slug}`,
     },
-    // An empty topic hub is a thin page; keep it out of Google until it has posts.
-    robots: posts.length === 0 ? { index: false, follow: true } : undefined,
   };
 }
 
@@ -39,7 +40,14 @@ export default async function TopicPage({ params }: PageProps) {
   const topic = getTopicBySlug(slug);
   if (!topic) notFound();
 
-  const posts = await getPublishedPosts({ topic: topic.slug });
+  const allVideos: VideoWithTranscript[] = await prisma.video.findMany({
+    orderBy: { publishedAt: "desc" },
+    include: { transcript: true },
+  });
+
+  const videos = allVideos.filter((v) =>
+    deriveTopics(v.title, v.description).some((t) => t.slug === topic.slug)
+  );
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -54,23 +62,26 @@ export default async function TopicPage({ params }: PageProps) {
           <span className="text-slate-700">{topic.label}</span>
         </nav>
 
-        <h1 className="text-3xl font-black text-slate-900 tracking-tight mb-2">{topic.label} Tutorials</h1>
+        <h1 className="text-3xl font-black text-slate-900 tracking-tight mb-2">
+          {topic.label} Tutorials
+        </h1>
         <p className="text-slate-600 max-w-2xl mb-8">{topic.description}</p>
 
-        {posts.length === 0 ? (
-          <p className="text-slate-500">No tutorials in this topic yet.</p>
+        {videos.length === 0 ? (
+          <p className="text-slate-500">No videos in this topic yet.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {posts.map((p) => (
-              <PostCard
-                key={p.id}
-                post={{
-                  slug: p.slug,
-                  title: p.title,
-                  excerpt: p.excerpt,
-                  image: postImage(p),
-                  topic: p.topic,
-                  publishedAt: p.publishedAt,
+            {videos.map((video) => (
+              <VideoCard
+                key={video.id}
+                video={{
+                  id: video.id,
+                  slug: video.slug,
+                  title: video.title,
+                  description: video.description,
+                  thumbnailUrl: video.thumbnailUrl,
+                  publishedAt: video.publishedAt,
+                  hasTranscript: Boolean(video.transcript),
                 }}
               />
             ))}

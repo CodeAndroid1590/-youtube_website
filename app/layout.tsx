@@ -11,9 +11,12 @@ export const metadata: Metadata = {
     template: "%s | AIWiredOfficial",
   },
   description:
-    "Written step-by-step tutorials on Claude Code, free AI coding tools, local AI models, and web development.",
+    "Step-by-step tutorials on Claude Code, free AI coding tools, local AI models, and web development — with full video transcripts you can search and read.",
   verification: {
     google: "B_EJK-6YeAu2xpggIdHK1RQK5RDMd7ImfdTf4dBV5Tc",
+  },
+  alternates: {
+    canonical: "/",
   },
 };
 
@@ -28,7 +31,7 @@ export default function RootLayout({
     name: "AIWiredOfficial",
     url: SITE_URL,
     description:
-      "Written step-by-step tutorials on Claude Code, free AI coding tools, local AI models, and web development.",
+      "Step-by-step tutorials on Claude Code, free AI coding tools, local AI models, and web development, with full video transcripts.",
   };
 
   return (

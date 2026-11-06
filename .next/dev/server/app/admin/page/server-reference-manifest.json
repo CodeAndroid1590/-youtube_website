@@ -1,48 +1,15 @@
 {
   "node": {
-    "0091a6b2924f67f90df969a06a8985cc6cf0e352b6": {
-      "workers": {
-        "app/admin/page": {
-          "moduleId": "[project]/.next-internal/server/app/admin/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/actions/auth.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/app/actions/sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/app/actions/videos.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": true,
-          "codeHash": null
-        }
-      },
-      "exportedName": "logoutAction",
-      "filename": "app/actions/auth.ts"
-    },
-    "40d7395b6642025a987d523b4599ef7881c1cbae8a": {
-      "workers": {
-        "app/admin/page": {
-          "moduleId": "[project]/.next-internal/server/app/admin/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/actions/auth.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/app/actions/sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/app/actions/videos.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": true,
-          "codeHash": null
-        }
-      },
-      "exportedName": "loginAction",
-      "filename": "app/actions/auth.ts"
-    },
     "40aa3fc55c87f74b74d81d0cb74169a2bdaa2c8855": {
       "workers": {
         "app/admin/page": {
-          "moduleId": "[project]/.next-internal/server/app/admin/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/actions/auth.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/app/actions/sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/app/actions/videos.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "moduleId": "[project]/.next-internal/server/app/admin/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/actions/sync.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true,
           "codeHash": null
         }
       },
       "exportedName": "syncVideoAction",
       "filename": "app/actions/sync.ts"
-    },
-    "40866c8dc264c12402257c1f0734c4b849a90b8736": {
-      "workers": {
-        "app/admin/page": {
-          "moduleId": "[project]/.next-internal/server/app/admin/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/actions/auth.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/app/actions/sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/app/actions/videos.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": true,
-          "codeHash": null
-        }
-      },
-      "exportedName": "deleteVideoAction",
-      "filename": "app/actions/videos.ts"
     }
   },
   "edge": {}

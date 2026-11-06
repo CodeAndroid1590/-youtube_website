@@ -36,6 +36,3 @@ export function getSiteUrl(): string {
   }
   return FALLBACK_SITE_URL;
 }
-
-/** Name shown as the author on articles (structured data). Set NEXT_PUBLIC_AUTHOR_NAME to a real person's name for better trust signals. */
-export const AUTHOR_NAME = process.env.NEXT_PUBLIC_AUTHOR_NAME || "AIWiredOfficial";
